@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <!-- iPad 9 橫向最佳化，允許雙指隨意放大縮小 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=0.5, maximum-scale=3.0">
+    <title>小學生活動購物記錄程式</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google 圓體字型 (適合小學生閱讀) -->
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: 'Zen Maru Gothic', 'M PLUS Rounded 1c', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 24px 24px;
+        }
+        .kids-card {
+            border: 3px solid #1e293b;
+            box-shadow: 4px 4px 0px #1e293b;
+            border-radius: 1.25rem;
+        }
+        .kids-btn {
+            border: 2.5px solid #1e293b;
+            box-shadow: 2.5px 2.5px 0px #1e293b;
+            transition: all 0.1s ease;
+        }
+        .kids-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #1e293b;
+        }
+        .kids-input {
+            border: 2.5px solid #94a3b8;
+            border-radius: 0.75rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .kids-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        /* 自訂內部區域動態捲動條 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="p-2 md:p-3 text-slate-800 select-none flex flex-col h-screen overflow-hidden">
+
+    <div class="max-w-7xl w-full mx-auto flex flex-col h-full space-y-2 min-h-0">
+       
+        <!-- ================= 頂部頁頭與控制區 (縮減高度以符合 100vh) ================= -->
+        <header class="kids-card bg-amber-300 p-2.5 flex-shrink-0">
+            <div class="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+               
+                <!-- 標題與 Icon -->
+                <div class="flex items-center space-x-2">
+                    <div class="bg-white p-1.5 rounded-xl border-2 border-slate-800 shadow-sm text-xl md:text-2xl">
+                        🛒
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-black text-slate-900 tracking-wide leading-tight">
+                            小學生活動購物記錄程式
+                        </h1>
+                        <p class="text-[11px] md:text-xs text-slate-700 font-bold hidden sm:block">互動採購預算計算與團購分攤小幫手</p>
+                    </div>
+                </div>
+
+                <!-- 預算與活動人數輸入區域 -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <!-- 預算輸入 -->
+                    <div class="flex items-center space-x-1 bg-emerald-100 border-2 border-emerald-400 px-2.5 py-1 rounded-xl">
+                        <label for="totalBudget" class="text-xs md:text-sm font-black text-emerald-950 flex items-center gap-1 shrink-0">
+                            <i class="fa-solid fa-wallet text-emerald-600"></i> 預算 ($)：
+                        </label>
+                        <input type="number" id="totalBudget" min="0" value="500" step="10"
+                               class="w-16 md:w-20 text-center text-sm md:text-base font-extrabold text-emerald-700 kids-input bg-white py-0.5"
+                               oninput="render()">
+                    </div>
+
+                    <!-- 人數輸入 -->
+                    <div class="flex items-center space-x-1 bg-indigo-100 border-2 border-indigo-400 px-2.5 py-1 rounded-xl">
+                        <label for="activityPeople" class="text-xs md:text-sm font-black text-indigo-950 flex items-center gap-1 shrink-0">
+                            <i class="fa-solid fa-users text-indigo-600"></i> 人數：
+                        </label>
+                        <input type="number" id="activityPeople" min="1" value="5" step="1"
+                               class="w-14 md:w-16 text-center text-sm md:text-base font-extrabold text-indigo-700 kids-input bg-white py-0.5"
+                               oninput="render()">
+                        <span class="text-xs font-black text-indigo-950 shrink-0">人</span>
+                    </div>
+
+                    <!-- 放大提示 -->
+                    <div class="bg-white px-2 py-1 rounded-xl border-2 border-slate-800 text-[10px] md:text-xs font-bold text-slate-600 hidden md:flex items-center gap-1 shrink-0">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center text-indigo-600"></i> iPad 支援雙指縮放
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ================= 主要雙欄 Layout (自動充填剩餘高度) ================= -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 overflow-hidden">
+           
+            <!-- ================= 左欄：輸入購物資料 (LEFT COLUMN) ================= -->
+            <section class="lg:col-span-5 flex flex-col h-full min-h-0">
+                <div class="kids-card bg-white p-3 flex flex-col h-full justify-between space-y-2 overflow-y-auto">
+                   
+                    <div class="flex items-center justify-between border-b-2 border-amber-200 pb-1.5 flex-shrink-0">
+                        <h2 class="text-base md:text-lg font-black text-indigo-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> 輸入購物資料
+                        </h2>
+                        <span id="modeBadge" class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-emerald-400">
+                            新增模式
+                        </span>
+                    </div>
+
+                    <!-- 表單欄位 -->
+                    <form id="itemForm" onsubmit="handleFormSubmit(event)" class="flex-1 flex flex-col justify-between space-y-2 py-1">
+                        <input type="hidden" id="editingId" value="">
+
+                        <!-- 類別下拉選單 (食物A, 食物B, 食物C, 飲品, 其他) -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-extrabold text-slate-700 mb-0.5">
+                                類別 <span class="text-rose-500">*</span>：
+                            </label>
+                            <select id="itemCategory" class="w-full p-1.5 md:p-2 text-sm font-bold text-slate-800 kids-input bg-sky-50">
+                                <option value="食物A">食物A</option>
+                                <option value="食物B">食物B</option>
+                                <option value="食物C">食物C</option>
+                                <option value="飲品">飲品</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <!-- 名稱 -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-extrabold text-slate-700 mb-0.5">
+                                物品名稱 <span class="text-rose-500">*</span>：
+                            </label>
+                            <input type="text" id="itemName" placeholder="例如：珍珍薯片 / 純水" required
+                                   class="w-full p-1.5 md:p-2 text-sm font-bold kids-input">
+                        </div>
+
+                        <!-- 包裝件數 (只輸入數字) -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-extrabold text-slate-700 mb-0.5">
+                                包裝件數 (只輸入數字) <span class="text-rose-500">*</span>：
+                            </label>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-3 text-xs font-bold text-slate-400">每包</span>
+                                <input type="number" id="itemPackaging" min="1" step="1" value="1" placeholder="例如：6" required
+                                       class="w-full pl-12 pr-8 p-1.5 md:p-2 text-sm font-bold kids-input">
+                                <span class="absolute right-3 text-xs font-bold text-slate-400">件</span>
+                            </div>
+                        </div>
+
+                        <!-- 單售價與買數量 -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs md:text-sm font-extrabold text-slate-700 mb-0.5">
+                                    單售價 ($) <span class="text-rose-500">*</span>：
+                                </label>
+                                <input type="number" id="itemPrice" min="0" step="0.5" placeholder="0" required
+                                       oninput="calculateFormSubtotal()"
+                                       class="w-full p-1.5 md:p-2 text-sm font-bold kids-input bg-orange-50">
+                            </div>
+                            <div>
+                                <label class="block text-xs md:text-sm font-extrabold text-slate-700 mb-0.5">
+                                    買數量 (包) <span class="text-rose-500">*</span>：
+                                </label>
+                                <input type="number" id="itemQty" min="1" step="1" value="1" required
+                                       oninput="calculateFormSubtotal()"
+                                       class="w-full p-1.5 md:p-2 text-sm font-bold kids-input bg-orange-50">
+                            </div>
+                        </div>
+
+                        <!-- 自動計算小計預覽區 -->
+                        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-2 flex justify-between items-center my-1">
+                            <span class="text-xs md:text-sm font-bold text-indigo-900 flex items-center gap-1">
+                                <i class="fa-solid fa-calculator text-indigo-500"></i> 單項總價預覽：
+                            </span>
+                            <span class="text-base md:text-lg font-black text-indigo-600" id="formSubtotalDisplay">$ 0</span>
+                        </div>
+
+                        <!-- 按鈕區：【加入購物車】、【清除輸入】、【儲存修改】 -->
+                        <div class="grid grid-cols-3 gap-1.5 pt-1 flex-shrink-0">
+                            <button type="submit" id="addBtn"
+                                    class="kids-btn bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-extrabold py-2 rounded-xl flex flex-col items-center justify-center text-xs">
+                                <i class="fa-solid fa-plus text-sm mb-0.5"></i> 加入購物車
+                            </button>
+                            <button type="button" onclick="clearForm()"
+                                    class="kids-btn bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-2 rounded-xl flex flex-col items-center justify-center text-xs">
+                                <i class="fa-solid fa-rotate-left text-sm mb-0.5"></i> 清除輸入
+                            </button>
+                            <button type="button" id="updateBtn" onclick="updateItem()" disabled
+                                    class="kids-btn bg-amber-300 hover:bg-amber-400 text-slate-900 font-extrabold py-2 rounded-xl flex flex-col items-center justify-center text-xs opacity-50 cursor-not-allowed">
+                                <i class="fa-solid fa-floppy-disk text-sm mb-0.5"></i> 儲存修改
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================= 右欄：已輸入物品清單與計算區 (RIGHT COLUMN) ================= -->
+            <section class="lg:col-span-7 flex flex-col h-full min-h-0 space-y-2">
+               
+                <!-- 已輸入物品清單區域 (內部捲動，防止整頁溢出) -->
+                <div class="kids-card bg-white p-3 flex-1 flex flex-col min-h-0 space-y-2">
+                    <div class="flex items-center justify-between border-b-2 border-sky-200 pb-1.5 flex-shrink-0">
+                        <h2 class="text-base md:text-lg font-black text-sky-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-list"></i> 已輸入物品清單
+                        </h2>
+                        <span class="text-[11px] font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-300">
+                            依類別分組比較
+                        </span>
+                    </div>
+
+                    <!-- 類別分組清單容器 (獨立內部動態捲動條) -->
+                    <div class="flex-1 overflow-y-auto min-h-0 pr-1 space-y-2" id="categoryContainers">
+                        <!-- 由 JavaScript 動態繪製類別區塊與物品 -->
+                    </div>
+                </div>
+
+                <!-- ================= 底部組合與預算計算區 ================= -->
+                <div class="kids-card bg-amber-100 p-2.5 flex-shrink-0 space-y-2">
+                   
+                    <!-- 1. 細緻詳細算式列 (支援獨立微幅捲動) -->
+                    <div class="bg-white p-2 rounded-xl border-2 border-amber-300 space-y-1 shadow-sm">
+                        <div class="text-[11px] font-black text-slate-500 flex items-center justify-between">
+                            <span><i class="fa-solid fa-calculator text-amber-600"></i> 已勾選項目的詳細組合與分攤算式：</span>
+                            <span class="text-slate-400 font-normal text-[10px]">無餘數分攤</span>
+                        </div>
+                       
+                        <!-- 詳細算式文字容器 -->
+                        <div id="detailedFormulaDisplay" class="text-xs md:text-sm font-extrabold text-slate-800 break-words leading-relaxed bg-amber-50/70 p-1.5 rounded-lg border border-amber-200 max-h-14 overflow-y-auto">
+                            <!-- JS 動態寫入內容 -->
+                        </div>
+                    </div>
+
+                    <!-- 2. 總支出 / 每人攤分 / 剩餘預算 三欄卡片 -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <!-- 總支出 -->
+                        <div class="bg-white p-1.5 rounded-xl border-2 border-amber-300 flex flex-col justify-center items-center">
+                            <span class="text-[10px] md:text-xs font-bold text-slate-600">勾選總支出</span>
+                            <span id="summaryTotalSpent" class="text-sm md:text-base font-black text-indigo-600">$ 0</span>
+                        </div>
+
+                        <!-- 每人攤分 -->
+                        <div class="bg-white p-1.5 rounded-xl border-2 border-amber-300 flex flex-col justify-center items-center">
+                            <span class="text-[10px] md:text-xs font-bold text-slate-600">每人攤分</span>
+                            <span id="summaryPerPerson" class="text-sm md:text-base font-black text-indigo-600">$ 0</span>
+                        </div>
+
+                        <!-- 剩餘預算 (正數綠色，超支紅色負數) -->
+                        <div id="remainingCard" class="bg-emerald-100 p-1.5 rounded-xl border-2 border-emerald-400 flex flex-col justify-center items-center transition-colors duration-300">
+                            <span class="text-[10px] md:text-xs font-bold text-slate-700" id="remainingLabel">剩餘預算</span>
+                            <span id="summaryRemaining" class="text-sm md:text-base font-black text-emerald-700">+$ 500</span>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- 自訂通知訊息 Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white font-bold px-4 py-2 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none flex items-center gap-2 z-50 border-2 border-amber-400 text-xs md:text-sm">
+        <i class="fa-solid fa-bell text-amber-400 text-base"></i>
+        <span id="toastMsg">訊息通知</span>
+    </div>
+
+    <script>
+        // 預設物品清單：預設為空 (完全不載入範例項目)
+        let items = [];
+        let nextId = 1;
+
+        // 預設保留顯示的標題類別 (提示學生思考)
+        const DEFAULT_VISIBLE_CATEGORIES = ['食物A', '食物B', '飲品'];
+        // 所有支援的類別清單
+        const ALL_CATEGORIES = ['食物A', '食物B', '食物C', '飲品', '其他'];
+
+        // 頁面初始化
+        window.onload = function() {
+            calculateFormSubtotal();
+            render();
+        };
+
+        // 顯示訊息彈窗
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+
+        // 即時計算左欄表單小計預覽
+        function calculateFormSubtotal() {
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            const qty = parseInt(document.getElementById('itemQty').value) || 0;
+            const subtotal = price * qty;
+            document.getElementById('formSubtotalDisplay').textContent = \`$ ${subtotal.toFixed(1).replace(/\.0$/, '')}\`;
+        }
+
+        // 提交表單（新增購物項目）
+        function handleFormSubmit(e) {
+            e.preventDefault();
+           
+            const category = document.getElementById('itemCategory').value;
+            const name = document.getElementById('itemName').value.trim();
+            const packagingNum = parseInt(document.getElementById('itemPackaging').value) || 1;
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            const qty = parseInt(document.getElementById('itemQty').value) || 1;
+
+            if (!name) {
+                showToast('請輸入物品名稱喔！');
+                return;
+            }
+
+            const newItem = {
+                id: nextId++,
+                category: category,
+                name: name,
+                packaging: packagingNum, // 只存數字
+                price: price,
+                qty: qty,
+                checked: true // 預設勾選
+            };
+
+            items.push(newItem);
+            showToast(\`已加入「${category}：${name}」！\`);
+            clearForm();
+            render();
+        }
+
+        // 清除表單輸入
+        function clearForm() {
+            document.getElementById('itemForm').reset();
+            document.getElementById('editingId').value = '';
+            document.getElementById('itemPackaging').value = '1';
+            document.getElementById('itemQty').value = '1';
+           
+            document.getElementById('modeBadge').textContent = '新增模式';
+            document.getElementById('modeBadge').className = 'bg-emerald-100 text-emerald-800 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-emerald-400';
+           
+            document.getElementById('addBtn').disabled = false;
+            document.getElementById('addBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+           
+            const updateBtn = document.getElementById('updateBtn');
+            updateBtn.disabled = true;
+            updateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            calculateFormSubtotal();
+        }
+
+        // 載入項目資料至左欄進行修改
+        function prepareEdit(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editingId').value = item.id;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemPackaging').value = item.packaging;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemQty').value = item.qty;
+
+            document.getElementById('modeBadge').textContent = '修改模式';
+            document.getElementById('modeBadge').className = 'bg-amber-100 text-amber-800 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-amber-400';
+
+            document.getElementById('addBtn').disabled = true;
+            document.getElementById('addBtn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            const updateBtn = document.getElementById('updateBtn');
+            updateBtn.disabled = false;
+            updateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            calculateFormSubtotal();
+            showToast(\`正在編輯：「${item.name}」\`);
+        }
+
+        // 儲存修改內容
+        function updateItem() {
+            const editingId = parseInt(document.getElementById('editingId').value);
+            if (!editingId) return;
+
+            const index = items.findIndex(i => i.id === editingId);
+            if (index !== -1) {
+                items[index].category = document.getElementById('itemCategory').value;
+                items[index].name = document.getElementById('itemName').value.trim();
+                items[index].packaging = parseInt(document.getElementById('itemPackaging').value) || 1;
+                items[index].price = parseFloat(document.getElementById('itemPrice').value) || 0;
+                items[index].qty = parseInt(document.getElementById('itemQty').value) || 1;
+
+                showToast(\`已成功修改：「${items[index].name}」！\`);
+                clearForm();
+                render();
+            }
+        }
+
+        // 刪除購物項目
+        function deleteItem(id) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                items = items.filter(i => i.id !== id);
+                showToast(\`已刪除：「${item.name}」\`);
+                if (parseInt(document.getElementById('editingId').value) === id) {
+                    clearForm();
+                }
+                render();
+            }
+        }
+
+        // 切換勾選狀態
+        function toggleCheck(id) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.checked = !item.checked;
+                render();
+            }
+        }
+
+        // 渲染畫面（類別卡片與底部詳細算式）
+        function render() {
+            const categoryContainers = document.getElementById('categoryContainers');
+            categoryContainers.innerHTML = '';
+
+            // 決定哪些類別需要顯示標題卡片：
+            // 預設必須顯示：食物A, 食物B, 飲品
+            // 食物C 與 其他：只有當 items 裡面有該類別項目時才顯示
+            const activeCategories = ALL_CATEGORIES.filter(cat => {
+                if (DEFAULT_VISIBLE_CATEGORIES.includes(cat)) return true;
+                return items.some(item => item.category === cat);
+            });
+
+            // 依類別渲染卡片
+            activeCategories.forEach(cat => {
+                const catItems = items.filter(item => item.category === cat);
+               
+                // 類別標題風格與顏色
+                let headerBadgeStyle = 'bg-sky-500 text-white';
+                let cardBorderStyle = 'border-sky-300 bg-sky-50/40';
+               
+                if (cat === '食物A') {
+                    headerBadgeStyle = 'bg-amber-500 text-white';
+                    cardBorderStyle = 'border-amber-300 bg-amber-50/40';
+                } else if (cat === '食物B') {
+                    headerBadgeStyle = 'bg-orange-500 text-white';
+                    cardBorderStyle = 'border-orange-300 bg-orange-50/40';
+                } else if (cat === '食物C') {
+                    headerBadgeStyle = 'bg-rose-500 text-white';
+                    cardBorderStyle = 'border-rose-300 bg-rose-50/40';
+                } else if (cat === '飲品') {
+                    headerBadgeStyle = 'bg-blue-500 text-white';
+                    cardBorderStyle = 'border-blue-300 bg-blue-50/40';
+                } else if (cat === '其他') {
+                    headerBadgeStyle = 'bg-purple-500 text-white';
+                    cardBorderStyle = 'border-purple-300 bg-purple-50/40';
+                }
+
+                const catCard = document.createElement('div');
+                catCard.className = \`rounded-xl border-2 p-2 ${cardBorderStyle} space-y-1.5\`;
+
+                // 卡片頁頭
+                let catHeaderHtml = \`
+                    <div class="flex items-center justify-between border-b pb-1 border-slate-300/60">
+                        <span class="text-xs font-black px-2.5 py-0.5 rounded-lg shadow-sm ${headerBadgeStyle}">
+                            📌 ${cat}
+                        </span>
+                        <span class="text-[11px] font-bold text-slate-500">
+                            已加入 ${catItems.length} 項
+                        </span>
+                    </div>
+                \`;
+
+                catCard.innerHTML = catHeaderHtml;
+
+                // 類別內容列表
+                const itemListContainer = document.createElement('div');
+                itemListContainer.className = "space-y-1.5 pt-0.5";
+
+                if (catItems.length === 0) {
+                    // 預設保留卡片空狀態提示
+                    itemListContainer.innerHTML = \`
+                        <div class="text-[11px] font-bold text-slate-400 italic py-1.5 px-2 bg-white/70 rounded-lg border border-dashed border-slate-300 text-center">
+                            💡 提示：請考慮採購此類別項目（從左邊輸入）
+                        </div>
+                    \`;
+                } else {
+                    catItems.forEach(item => {
+                        const itemSubtotal = item.price * item.qty;
+                        const itemEl = document.createElement('div');
+                        itemEl.className = \`p-2 rounded-lg border-2 transition-all flex items-center justify-between gap-2 ${
+                            item.checked ? 'bg-white border-amber-400 shadow-sm' : 'bg-slate-100/80 border-slate-300 opacity-60'
+                        }\`;
+
+                        itemEl.innerHTML = \`
+                            <div class="flex items-center space-x-2 overflow-hidden">
+                                <input type="checkbox" ${item.checked ? 'checked' : ''}
+                                       onchange="toggleCheck(${item.id})"
+                                       class="w-4 h-4 text-indigo-600 rounded border-2 border-slate-400 focus:ring-0 cursor-pointer">
+                               
+                                <div class="truncate">
+                                    <div class="font-black text-slate-800 text-xs md:text-sm truncate">
+                                        ${item.name}
+                                    </div>
+                                    <div class="text-[10px] md:text-xs font-bold text-slate-500 flex flex-wrap gap-x-1.5">
+                                        <span>每包 <strong class="text-slate-700">${item.packaging}</strong> 件</span>
+                                        <span>•</span>
+                                        <span>單價: <strong class="text-slate-700">$${item.price}</strong></span>
+                                        <span>•</span>
+                                        <span>數量: <strong class="text-slate-700">${item.qty}</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center space-x-1.5 shrink-0">
+                                <span class="font-black text-indigo-700 text-xs md:text-sm">
+                                    $${itemSubtotal.toFixed(1).replace(/\.0$/, '')}
+                                </span>
+                                <button onclick="prepareEdit(${item.id})" title="修改"
+                                        class="kids-btn bg-sky-200 hover:bg-sky-300 text-sky-900 px-1.5 py-0.5 rounded-md text-[11px] font-bold">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button onclick="deleteItem(${item.id})" title="刪除"
+                                        class="kids-btn bg-rose-200 hover:bg-rose-300 text-rose-900 px-1.5 py-0.5 rounded-md text-[11px] font-bold">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        \`;
+                        itemListContainer.appendChild(itemEl);
+                    });
+                }
+
+                catCard.appendChild(itemListContainer);
+                categoryContainers.appendChild(catCard);
+            });
+
+            // ================= 底部詳細算式與預算計算邏輯 =================
+            const checkedItems = items.filter(i => i.checked);
+            const totalBudget = parseFloat(document.getElementById('totalBudget').value) || 0;
+            const people = parseInt(document.getElementById('activityPeople').value) || 1;
+
+            // 1. 計算總支出
+            const totalSpent = checkedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+           
+            // 2. 計算每人攤分（完全刪除餘數，四捨五入整數）
+            const perPerson = Math.round(totalSpent / (people > 0 ? people : 1));
+
+            // 3. 繪製詳細算式文字
+            const formulaDisplay = document.getElementById('detailedFormulaDisplay');
+
+            if (checkedItems.length === 0) {
+                formulaDisplay.innerHTML = \`
+                    <span class="text-slate-400 font-bold italic">
+                        <i class="fa-solid fa-circle-info mr-1"></i>請在上方勾選項目以計算組合分攤算式
+                    </span>
+                \`;
+            } else {
+                const itemDetailsList = checkedItems.map(item => {
+                    const subtotal = item.price * item.qty;
+                    return \`<span class="text-indigo-900 font-extrabold">${item.category}:${item.name}</span> <span class="text-amber-700 font-bold">($${subtotal})</span>\`;
+                });
+
+                const formulaText = itemDetailsList.join(' <span class="text-rose-500 font-black">+</span> ') +
+                    \` <span class="text-slate-800 font-black">=</span> <span class="text-indigo-700 font-black">總支出 ($${totalSpent})</span> \` +
+                    \`<span class="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded-md border border-indigo-300 font-black ml-1">[每人攤分$${perPerson}]</span>\`;
+
+                formulaDisplay.innerHTML = formulaText;
+            }
+
+            // 4. 更新卡片數據 (總支出 / 每人攤分)
+            document.getElementById('summaryTotalSpent').textContent = \`$ ${totalSpent.toFixed(1).replace(/\.0$/, '')}\`;
+            document.getElementById('summaryPerPerson').textContent = \`$ ${perPerson}\`;
+
+            // 5. 計算並顯示剩餘預算 (預算 - 總支出)
+            const remaining = totalBudget - totalSpent;
+            const remainingCard = document.getElementById('remainingCard');
+            const summaryRemaining = document.getElementById('summaryRemaining');
+            const remainingLabel = document.getElementById('remainingLabel');
+
+            if (remaining >= 0) {
+                // 未超支：綠色字體與綠色背景卡片
+                remainingCard.className = 'bg-emerald-100 p-1.5 rounded-xl border-2 border-emerald-400 flex flex-col justify-center items-center transition-colors duration-300';
+                remainingLabel.textContent = '剩餘預算';
+                summaryRemaining.className = 'text-sm md:text-base font-black text-emerald-700';
+                summaryRemaining.textContent = \`+$ ${remaining.toFixed(1).replace(/\.0$/, '')}\`;
+            } else {
+                // 超支：紅色字體與紅色背景卡片
+                remainingCard.className = 'bg-rose-100 p-1.5 rounded-xl border-2 border-rose-400 flex flex-col justify-center items-center transition-colors duration-300';
+                remainingLabel.textContent = '超支金額';
+                summaryRemaining.className = 'text-sm md:text-base font-black text-rose-600';
+                summaryRemaining.textContent = \`-$ ${Math.abs(remaining).toFixed(1).replace(/\.0$/, '')} (超支)\`;
+            }
+        }
+    </script>
+</body>
+</html>
